@@ -58,7 +58,7 @@ export default function Home() {
             initial="hidden"
             animate="visible"
             variants={headerAnimation}
-            className="text-white mt-32 text-5xl font-bold"
+            className="text-white mt-32 text-5xl max-sm:text-4xl font-bold"
           >
             Find Your Book Here
           </motion.header>
@@ -66,7 +66,7 @@ export default function Home() {
             initial="hidden"
             animate="visible"
             variants={pAnimation}
-            className="text-slate-300"
+            className="text-slate-300 max-sm:text-sm"
           >
             Find the book that you are looking for. All latest books are
             avaliable here

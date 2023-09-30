@@ -36,7 +36,7 @@ function BooksCard() {
   const apiData: ApiData = useRecoilValue(apiDataState);
 
   return (
-    <div className="grid grid-cols-3 gap-9 mt-10">
+    <div className="grid grid-cols-3 max-sm:grid-cols-1 max-md:grid-cols-2 max-lg:grid-cols-2 gap-9 mt-10">
       {apiData &&
         apiData.map((data, idx) => (
           <Card key={idx} className="flex max-w-md">
