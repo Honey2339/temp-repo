@@ -4,26 +4,47 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BooksCard from "./BooksCard";
 import axios from "axios";
-import { useState } from "react";
-import { useRecoilState } from "recoil";
-import { apiDataState } from "./recoilStates";
+import { useState, useEffect } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { apiDataState, previousSearchesState } from "./recoilStates";
 import { motion } from "framer-motion";
 import { SkeletonCard } from "./SkeletonCard";
 import Footer from "./Footer";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function Home() {
   const [inputData, setInputData] = useState("");
   const [show, setShow] = useState(false);
+  const [showTwo, setShowTwo] = useState(true);
   const [apiData, setApiData] = useRecoilState(apiDataState);
+  const [previousSearches, setPreviousSearches] = useRecoilState<
+    Array<{ query: string; results: any[] }>
+  >(previousSearchesState);
+
   const handleFind = () => {
     const res = axios
       .get(`https://www.googleapis.com/books/v1/volumes?q=${inputData}`)
       .then((res) => {
         console.log(res.data.items);
         setApiData(res.data.items);
+        const newSearch = { query: inputData, results: res.data.items };
+        setPreviousSearches((prevSearches) => [...prevSearches, newSearch]);
+        localStorage.setItem(
+          "previousSearches",
+          JSON.stringify([...previousSearches, newSearch])
+        );
         setInputData("");
+
         setTimeout(() => {
           setShow(true);
+          setShowTwo(false);
         }, 1000);
       });
   };
@@ -43,6 +64,12 @@ export default function Home() {
     hidden: { opacity: 0, y: 0 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 1 } },
   };
+  useEffect(() => {
+    const storedSearches = localStorage.getItem("previousSearches");
+    if (storedSearches) {
+      setPreviousSearches(JSON.parse(storedSearches));
+    }
+  }, []);
   return (
     <>
       <div className="h-full">
@@ -104,13 +131,64 @@ export default function Home() {
         >
           {show && show ? <BooksCard /> : <SkeletonCard />}
         </motion.div>
-        <motion.footer
+        {showTwo && showTwo ? (
+          <div className="flex flex-col justify-center items-center">
+            {previousSearches &&
+              [...previousSearches]
+                .reverse()
+                .slice(0, 2)
+                .map((search, index) => (
+                  <div key={index}>
+                    <h2>Previous Search: {search.query}</h2>
+                    <div className=" grid grid-cols-3  gap-10 mr-20">
+                      {search.results && Array.isArray(search.results)
+                        ? search.results.slice(0, 3).map((data, idx) => (
+                            <Card key={idx} className="flex max-w-md">
+                              <div className="flex flex-col justify-between ml-2">
+                                <div>
+                                  <CardHeader>
+                                    <CardTitle>
+                                      {data.volumeInfo?.title}
+                                    </CardTitle>
+                                    <CardDescription>
+                                      {data.volumeInfo?.publisher}
+                                    </CardDescription>
+                                  </CardHeader>
+                                  <CardContent>
+                                    <p>
+                                      {data.volumeInfo?.description
+                                        ? `${
+                                            data.volumeInfo?.description.substring(
+                                              0,
+                                              100
+                                            ) + "..."
+                                          }`
+                                        : data.volumeInfo?.description}
+                                    </p>
+                                  </CardContent>
+                                </div>
+                                <div className="mt-2">
+                                  <a href={data.volumeInfo?.infoLink}>
+                                    <Button>More {"->"}</Button>
+                                  </a>
+                                </div>
+                              </div>
+                            </Card>
+                          ))
+                        : null}
+                    </div>
+                  </div>
+                ))}
+          </div>
+        ) : null}
+
+        {/* <motion.footer
           initial="hidden"
           animate="visible"
           variants={FooterAnimation}
         >
           {show && show ? null : <Footer />}
-        </motion.footer>
+        </motion.footer> */}
       </div>
     </>
   );

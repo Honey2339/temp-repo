@@ -8,6 +8,11 @@ export const apiDataState = atom({
   default: [],
 });
 
+export const previousSearchesState = atom({
+  key: "previousSearchesState",
+  default: [] as { query: string; results: any[] }[],
+});
+
 export default function RecoilContextProvider({
   children,
 }: {
